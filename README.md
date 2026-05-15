@@ -1,0 +1,1 @@
+# jakki-tunisie\n\nDevelopment plan for a Flutter implementation of Jakki Tunisie (Mahbousseh variant). See incoming PRs.\n
