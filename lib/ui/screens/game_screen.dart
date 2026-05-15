@@ -72,18 +72,22 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 winner: state.winner,
               ),
               const SizedBox(height: 8),
-              BoardView(
-                board: state.board,
-                viewer: state.toMove,
-                selectedFrom: _selectedFrom,
-                legalTargets: legalTargets,
-                canBearOff: canBearOff,
-                onPointTapped: state.dice == null || state.isGameOver
-                    ? null
-                    : (int index) => _onPointTapped(index, nextMoves),
-                onBearOffTapped: canBearOff
-                    ? () => _onBearOffTapped(nextMoves)
-                    : null,
+              Expanded(
+                child: Center(
+                  child: BoardView(
+                    board: state.board,
+                    viewer: state.toMove,
+                    selectedFrom: _selectedFrom,
+                    legalTargets: legalTargets,
+                    canBearOff: canBearOff,
+                    onPointTapped: state.dice == null || state.isGameOver
+                        ? null
+                        : (int index) => _onPointTapped(index, nextMoves),
+                    onBearOffTapped: canBearOff
+                        ? () => _onBearOffTapped(nextMoves)
+                        : null,
+                  ),
+                ),
               ),
               const SizedBox(height: 8),
               DiceRow(
@@ -92,7 +96,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     : (a: state.dice!.a, b: state.dice!.b),
                 remainingPips: state.remainingPips,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               _bottomBar(
                 state,
                 controller,
@@ -100,6 +104,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 turnExhausted: turnExhausted,
                 stuck: stuck,
               ),
+              const SizedBox(height: 4),
             ],
           ),
         ),
