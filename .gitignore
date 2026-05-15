@@ -6,9 +6,10 @@
 build/
 .flutter-plugins
 .flutter-plugins-dependencies
-.metadata
-pubspec.lock
 .fvm/
+
+# pubspec.lock and .metadata are committed for applications
+# (per Flutter guidance). They are intentionally NOT ignored.
 
 # Android
 **/android/.gradle
