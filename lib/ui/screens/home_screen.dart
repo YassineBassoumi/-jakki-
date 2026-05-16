@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../engine/player.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../state/game_controller.dart';
+import '../../state/game_mode_controller.dart';
 import '../../state/locale_controller.dart';
 import 'game_screen.dart';
 
@@ -43,6 +45,28 @@ class HomeScreen extends ConsumerWidget {
                   icon: const Icon(Icons.play_arrow),
                   label: Text(l.playPassAndPlay),
                   onPressed: () {
+                    ref
+                        .read(gameModeControllerProvider.notifier)
+                        .setMode(GameMode.passAndPlay);
+                    ref.read(gameControllerProvider.notifier).newGame();
+                    Navigator.of(context).push<void>(
+                      MaterialPageRoute<void>(
+                        builder: (BuildContext _) => const GameScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  icon: const Icon(Icons.smart_toy_outlined),
+                  label: Text(l.playVsComputer),
+                  onPressed: () {
+                    ref
+                        .read(gameModeControllerProvider.notifier)
+                        .setMode(
+                          GameMode.vsComputer,
+                          humanPlayer: Player.white,
+                        );
                     ref.read(gameControllerProvider.notifier).newGame();
                     Navigator.of(context).push<void>(
                       MaterialPageRoute<void>(

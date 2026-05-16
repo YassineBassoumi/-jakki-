@@ -10,6 +10,9 @@
   "playPassAndPlay": "Play (pass-and-play)",
   "@playPassAndPlay": { "description": "Home screen button: start a fresh pass-and-play game." },
 
+  "playVsComputer": "Play vs computer",
+  "@playVsComputer": { "description": "Home screen button: start a single-player game against the AI." },
+
   "continueGame": "Continue",
   "@continueGame": { "description": "Home screen button: continue the most recent saved game." },
 
@@ -42,5 +45,11 @@
 
   "languageEnglish": "English",
   "languageFrench": "Français",
-  "languageArabic": "العربية"
+  "languageArabic": "العربية",
+
+  "computerThinking": "Computer is thinking…",
+  "@computerThinking": { "description": "Status text shown on the game screen while the AI computes its move." },
+
+  "computerNoMove": "Computer has no legal move",
+  "@computerNoMove": { "description": "Status text shown when the AI is forced to pass its turn." }
 }
