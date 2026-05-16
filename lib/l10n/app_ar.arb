@@ -4,6 +4,7 @@
   "appTitle": "جاكي تونسي",
   "tagline": "محبوسة — شيش-بيش",
   "playPassAndPlay": "لعب (تبادل الأدوار)",
+  "playVsComputer": "اللعب ضد الكمبيوتر",
   "continueGame": "متابعة",
   "rollDice": "ارمِ النرد",
   "endTurn": "نهاية الدور",
@@ -16,5 +17,7 @@
   "language": "اللغة",
   "languageEnglish": "English",
   "languageFrench": "Français",
-  "languageArabic": "العربية"
+  "languageArabic": "العربية",
+  "computerThinking": "الكمبيوتر يفكر…",
+  "computerNoMove": "الكمبيوتر ليس لديه حركة قانونية"
 }

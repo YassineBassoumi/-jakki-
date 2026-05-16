@@ -4,6 +4,7 @@
   "appTitle": "Jakki Tunisie",
   "tagline": "Mahbousseh — chiche-biche",
   "playPassAndPlay": "Jouer (à tour de rôle)",
+  "playVsComputer": "Jouer contre l’ordinateur",
   "continueGame": "Continuer",
   "rollDice": "Lancer les dés",
   "endTurn": "Tour suivant",
@@ -16,5 +17,7 @@
   "language": "Langue",
   "languageEnglish": "English",
   "languageFrench": "Français",
-  "languageArabic": "العربية"
+  "languageArabic": "العربية",
+  "computerThinking": "L’ordinateur réfléchit…",
+  "computerNoMove": "L’ordinateur n’a aucun coup légal"
 }

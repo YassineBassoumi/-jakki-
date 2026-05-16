@@ -10,7 +10,11 @@ void main() {
 
     expect(find.text('Jakki Tunisie'), findsOneWidget);
     expect(find.text('Mahbousseh — chiche-biche'), findsOneWidget);
-    expect(find.byType(FilledButton), findsOneWidget);
+    // Pass-and-play + vs-computer Play buttons.
+    expect(find.byType(FilledButton), findsNWidgets(2));
+    // Continue (saved game) button.
     expect(find.byType(OutlinedButton), findsOneWidget);
+    expect(find.text('Play (pass-and-play)'), findsOneWidget);
+    expect(find.text('Play vs computer'), findsOneWidget);
   });
 }

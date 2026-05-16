@@ -1,19 +1,29 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../ai/bot.dart';
 import '../../audio/sound_manager.dart';
 import '../../engine/game_state.dart';
 import '../../engine/move.dart';
 import '../../engine/player.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../../state/ai_provider.dart';
 import '../../state/game_controller.dart';
+import '../../state/game_mode_controller.dart';
 import '../theme/jakki_theme.dart';
 import '../widgets/board_view.dart';
 import '../widgets/dice_view.dart';
 import '../widgets/turn_banner.dart';
 
-/// Main pass-and-play screen. Tap a checker, then tap a legal
-/// destination (or the bear-off zone) to move.
+/// Main game screen.
+///
+/// In pass-and-play mode both players tap. In vs-computer mode the
+/// human controls one colour (white by default) and the AI auto-
+/// plays the opposite colour: it rolls, applies its best legal turn
+/// sequence with a short delay between sub-moves, then ends its
+/// turn.
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
 
@@ -23,11 +33,30 @@ class GameScreen extends ConsumerStatefulWidget {
 
 class _GameScreenState extends ConsumerState<GameScreen> {
   int? _selectedFrom;
+  bool _aiRunning = false;
+
+  /// Pacing for the AI animation. Tuned to feel "thinking" without
+  /// dragging out the turn — total ~1.5–2s for a normal roll.
+  static const Duration _aiRollDelay = Duration(milliseconds: 700);
+  static const Duration _aiBetweenMoves = Duration(milliseconds: 380);
+  static const Duration _aiEndTurnDelay = Duration(milliseconds: 550);
 
   @override
   Widget build(BuildContext context) {
     final GameState state = ref.watch(gameControllerProvider);
     final GameController controller = ref.read(gameControllerProvider.notifier);
+    final GameModeSettings mode = ref.watch(gameModeControllerProvider);
+    final bool isAiTurn = mode.isAi(state.toMove) && !state.isGameOver;
+
+    // Kick off the AI turn as soon as the build that introduced an
+    // AI-to-move state has finished. The guard prevents re-entry
+    // while an AI animation is already in flight.
+    if (isAiTurn && !_aiRunning) {
+      _aiRunning = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _runAiTurn();
+      });
+    }
 
     final List<Move> nextMoves = _selectedFrom == null
         ? <Move>[]
@@ -45,6 +74,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         state.dice != null &&
         state.remainingPips.isNotEmpty &&
         !controller.hasLegalMove;
+    final bool interactionLocked = isAiTurn;
 
     final AppLocalizations l = AppLocalizations.of(context);
     return Scaffold(
@@ -83,10 +113,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     selectedFrom: _selectedFrom,
                     legalTargets: legalTargets,
                     canBearOff: canBearOff,
-                    onPointTapped: state.dice == null || state.isGameOver
+                    onPointTapped:
+                        state.dice == null ||
+                            state.isGameOver ||
+                            interactionLocked
                         ? null
                         : (int index) => _onPointTapped(index, nextMoves),
-                    onBearOffTapped: canBearOff
+                    onBearOffTapped: canBearOff && !interactionLocked
                         ? () => _onBearOffTapped(nextMoves)
                         : null,
                   ),
@@ -106,6 +139,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 dicePending: dicePending,
                 turnExhausted: turnExhausted,
                 stuck: stuck,
+                aiThinking: isAiTurn,
+                l: l,
               ),
               const SizedBox(height: 4),
             ],
@@ -158,14 +193,69 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     }
   }
 
+  Future<void> _runAiTurn() async {
+    final GameController controller = ref.read(gameControllerProvider.notifier);
+    final OnePlyBot bot = ref.read(aiBotProvider);
+
+    try {
+      // 1. Roll the dice for the AI.
+      GameState state = ref.read(gameControllerProvider);
+      if (state.dice == null && !state.isGameOver) {
+        controller.rollDice();
+        unawaited(soundManager.playRoll());
+        await Future<void>.delayed(_aiRollDelay);
+        if (!mounted) return;
+      }
+
+      // 2. Compute and play the chosen legal sequence one move at a time.
+      state = ref.read(gameControllerProvider);
+      if (!state.isGameOver && state.dice != null) {
+        final List<Move> sequence = bot.chooseTurn(state);
+        for (final Move move in sequence) {
+          controller.applyMove(move);
+          if (move.bearsOff) {
+            unawaited(soundManager.playBearOff());
+          } else {
+            unawaited(soundManager.playMove());
+          }
+          final GameState afterMove = ref.read(gameControllerProvider);
+          if (afterMove.isGameOver) {
+            unawaited(soundManager.playWin());
+            return;
+          }
+          await Future<void>.delayed(_aiBetweenMoves);
+          if (!mounted) return;
+        }
+      }
+
+      // 3. Settle, then end the AI's turn (unless the game just ended).
+      await Future<void>.delayed(_aiEndTurnDelay);
+      if (!mounted) return;
+      final GameState finalState = ref.read(gameControllerProvider);
+      if (!finalState.isGameOver) {
+        controller.endTurn();
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _aiRunning = false;
+          _selectedFrom = null;
+        });
+      } else {
+        _aiRunning = false;
+      }
+    }
+  }
+
   Widget _bottomBar(
     GameState state,
     GameController controller, {
     required bool dicePending,
     required bool turnExhausted,
     required bool stuck,
+    required bool aiThinking,
+    required AppLocalizations l,
   }) {
-    final AppLocalizations l = AppLocalizations.of(context);
     if (state.isGameOver) {
       return FilledButton.icon(
         icon: const Icon(Icons.refresh),
@@ -180,6 +270,21 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             );
           });
         },
+      );
+    }
+    if (aiThinking) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          const SizedBox(width: 12),
+          Text(l.computerThinking),
+        ],
       );
     }
     if (dicePending) {
