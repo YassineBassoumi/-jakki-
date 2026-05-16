@@ -29,7 +29,8 @@ Future<void> _playHumanTurn(
   for (final int to in destinations) {
     final List<Move> legal = controller.legalNextMovesFrom(24);
     final Move move = legal.firstWhere(
-      (Move m) => !m.bearsOff && (m.from + Player.white.direction * m.pips) == to,
+      (Move m) =>
+          !m.bearsOff && (m.from + Player.white.direction * m.pips) == to,
     );
     controller.applyMove(move);
     await tester.pumpAndSettle();
@@ -56,16 +57,12 @@ void main() {
         GameMode.vsComputer,
       );
 
-      final GameController controller =
-          container.read(gameControllerProvider.notifier);
+      final GameController controller = container.read(
+        gameControllerProvider.notifier,
+      );
 
       // Human plays 24→21 (3 pips) and 24→22 (2 pips), then ends turn.
-      await _playHumanTurn(
-        tester,
-        controller,
-        const Dice(3, 2),
-        <int>[21, 22],
-      );
+      await _playHumanTurn(tester, controller, const Dice(3, 2), <int>[21, 22]);
 
       // Pump enough wall-clock to cover the AI roll delay, between-move
       // delays and the end-turn delay defined in _GameScreenState.
@@ -99,16 +96,17 @@ void main() {
 
       final BuildContext context = tester.element(find.byType(Scaffold).first);
       final ProviderContainer container = ProviderScope.containerOf(context);
-      final GameController controller =
-          container.read(gameControllerProvider.notifier);
+      final GameController controller = container.read(
+        gameControllerProvider.notifier,
+      );
 
       // Human rolls doubles 6-6 and plays four 24→18 sub-moves, then ends turn.
-      await _playHumanTurn(
-        tester,
-        controller,
-        const Dice(6, 6),
-        <int>[18, 18, 18, 18],
-      );
+      await _playHumanTurn(tester, controller, const Dice(6, 6), <int>[
+        18,
+        18,
+        18,
+        18,
+      ]);
 
       for (int i = 0; i < 60; i++) {
         await tester.pump(const Duration(milliseconds: 100));
