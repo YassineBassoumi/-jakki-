@@ -4,9 +4,8 @@ import '../../engine/point.dart';
 import '../theme/jakki_theme.dart';
 import 'checker_pill.dart';
 
-/// A single board point. Renders a column of stacked checkers (or
-/// shows an N-marker if more than [maxVisible] checkers are stacked)
-/// plus a pinned-opponent indicator at the base.
+/// A single board point. Renders a triangular spike pointing toward
+/// the centre of the board, then stacks the checkers on top of it.
 ///
 /// `onTap` fires regardless of contents; selection / highlighting is
 /// done via [isSelected] and [isLegalTarget].
@@ -25,8 +24,8 @@ class PointView extends StatelessWidget {
   final Point point;
 
   /// True when this point is rendered in the upper half of the board
-  /// (checkers stack downward from the top edge). False for the
-  /// lower half (checkers stack upward from the bottom edge).
+  /// (the triangle's apex points down toward the centre of the board).
+  /// False for the lower half (apex points up toward the centre).
   final bool isTopHalf;
   final bool isSelected;
   final bool isLegalTarget;
@@ -37,36 +36,50 @@ class PointView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isOddColumn = index.isOdd;
-    final Color base = isOddColumn
-        ? JakkiTheme.terracotta.withValues(alpha: 0.18)
-        : JakkiTheme.olive.withValues(alpha: 0.18);
-    final Color border = isSelected
+    final Color spikeColor = isOddColumn
+        ? JakkiTheme.terracotta.withValues(alpha: 0.55)
+        : JakkiTheme.olive.withValues(alpha: 0.55);
+    final Color? highlight = isSelected
         ? JakkiTheme.terracotta
         : isLegalTarget
         ? JakkiTheme.olive
-        : Colors.transparent;
+        : null;
 
     return InkWell(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: base,
-          border: Border.all(color: border, width: 2),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-        child: LayoutBuilder(
-          builder: (BuildContext _, BoxConstraints constraints) {
-            final double diameter = constraints.maxWidth.clamp(12, 26);
-            return Column(
-              mainAxisAlignment: isTopHalf
-                  ? MainAxisAlignment.start
-                  : MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: _stack(diameter),
-            );
-          },
-        ),
+      child: LayoutBuilder(
+        builder: (BuildContext _, BoxConstraints constraints) {
+          final double width = constraints.maxWidth;
+          final double diameter = width.clamp(12, 26);
+          return Stack(
+            children: <Widget>[
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _SpikePainter(
+                    color: spikeColor,
+                    highlight: highlight,
+                    apexDown: isTopHalf,
+                  ),
+                ),
+              ),
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 2,
+                    vertical: 2,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: isTopHalf
+                        ? MainAxisAlignment.start
+                        : MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: _stack(diameter),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -101,16 +114,10 @@ class PointView extends StatelessWidget {
         : null;
 
     if (isTopHalf) {
-      // Top points: the visible base of the column is at the top of
-      // the screen; the pinned checker sits beneath the stack
-      // visually (= lower on screen, further down the column).
       children.addAll(topCheckers);
       if (point.topCount > maxVisible) children.add(overflowBadge);
       if (pinnedWidget != null) children.add(pinnedWidget);
     } else {
-      // Bottom points: visible base of the column is at the bottom;
-      // pinned checker sits underneath, so visually it is the
-      // bottom-most checker (= higher on screen).
       if (pinnedWidget != null) children.add(pinnedWidget);
       if (point.topCount > maxVisible) children.add(overflowBadge);
       children.addAll(topCheckers);
@@ -138,4 +145,61 @@ class PointView extends StatelessWidget {
       ),
     );
   }
+}
+
+class _SpikePainter extends CustomPainter {
+  _SpikePainter({
+    required this.color,
+    required this.highlight,
+    required this.apexDown,
+  });
+
+  final Color color;
+  final Color? highlight;
+  final bool apexDown;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Path triangle = Path();
+    if (apexDown) {
+      // Base at the top of the cell, apex pointing down toward the centre.
+      triangle
+        ..moveTo(0, 0)
+        ..lineTo(size.width, 0)
+        ..lineTo(size.width / 2, size.height)
+        ..close();
+    } else {
+      // Base at the bottom of the cell, apex pointing up toward the centre.
+      triangle
+        ..moveTo(0, size.height)
+        ..lineTo(size.width, size.height)
+        ..lineTo(size.width / 2, 0)
+        ..close();
+    }
+
+    final Paint fill = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(triangle, fill);
+
+    final Paint outline = Paint()
+      ..color = JakkiTheme.charcoal.withValues(alpha: 0.35)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.75;
+    canvas.drawPath(triangle, outline);
+
+    if (highlight != null) {
+      final Paint glow = Paint()
+        ..color = highlight!.withValues(alpha: 0.7)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5;
+      canvas.drawPath(triangle, glow);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _SpikePainter old) =>
+      old.color != color ||
+      old.highlight != highlight ||
+      old.apexDown != apexDown;
 }

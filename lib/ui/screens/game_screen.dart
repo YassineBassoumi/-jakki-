@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../audio/sound_manager.dart';
 import '../../engine/game_state.dart';
 import '../../engine/move.dart';
 import '../../engine/player.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../state/game_controller.dart';
 import '../theme/jakki_theme.dart';
 import '../widgets/board_view.dart';
@@ -44,12 +46,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         state.remainingPips.isNotEmpty &&
         !controller.hasLegalMove;
 
+    final AppLocalizations l = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Jakki Tunisie'),
+        title: Text(l.appTitle),
         actions: <Widget>[
           IconButton(
-            tooltip: 'New game',
+            tooltip: l.newGame,
             icon: const Icon(Icons.refresh),
             onPressed: () {
               setState(() {
@@ -124,6 +127,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         final int dest = m.from + state.toMove.direction * m.pips;
         if (dest == index) {
           controller.applyMove(m);
+          soundManager.playMove();
           setState(() => _selectedFrom = null);
           return;
         }
@@ -143,6 +147,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     for (final Move m in currentNextMoves) {
       if (m.bearsOff) {
         controller.applyMove(m);
+        soundManager.playBearOff();
+        final GameState s = ref.read(gameControllerProvider);
+        if (s.isGameOver) {
+          soundManager.playWin();
+        }
         setState(() => _selectedFrom = null);
         return;
       }
@@ -156,10 +165,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     required bool turnExhausted,
     required bool stuck,
   }) {
+    final AppLocalizations l = AppLocalizations.of(context);
     if (state.isGameOver) {
       return FilledButton.icon(
         icon: const Icon(Icons.refresh),
-        label: const Text('New game'),
+        label: Text(l.newGame),
         onPressed: () {
           setState(() {
             _selectedFrom = null;
@@ -175,15 +185,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     if (dicePending) {
       return FilledButton.icon(
         icon: const Icon(Icons.casino),
-        label: const Text('Roll dice'),
+        label: Text(l.rollDice),
         onPressed: () {
           controller.rollDice();
+          soundManager.playRoll();
           setState(() => _selectedFrom = null);
         },
       );
     }
     if (turnExhausted || stuck) {
-      final String label = stuck ? 'No legal move — end turn' : 'End turn';
+      final String label = stuck ? l.noLegalMoveEndTurn : l.endTurn;
       return FilledButton.icon(
         icon: const Icon(Icons.arrow_forward),
         label: Text(label),
