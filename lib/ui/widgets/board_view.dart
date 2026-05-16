@@ -48,9 +48,24 @@ class BoardView extends StatelessWidget {
           aspectRatio: 16 / 11,
           child: Container(
             decoration: BoxDecoration(
-              color: JakkiTheme.parchment,
-              border: Border.all(color: JakkiTheme.charcoal, width: 2),
-              borderRadius: BorderRadius.circular(8),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: <Color>[
+                  Color(0xFFEFE3C7),
+                  Color(0xFFE8D5A8),
+                  Color(0xFFD9BE85),
+                ],
+              ),
+              border: Border.all(color: const Color(0xFF6B4B26), width: 3),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: const <BoxShadow>[
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
+              ],
             ),
             padding: const EdgeInsets.all(8),
             child: Row(
@@ -160,11 +175,22 @@ class _MiddleBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 12,
+      width: 14,
       margin: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
-        color: JakkiTheme.charcoal,
-        borderRadius: BorderRadius.circular(2),
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: <Color>[
+            Color(0xFF6B4B26),
+            Color(0xFF8A6B3B),
+            Color(0xFF6B4B26),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(3),
+        boxShadow: const <BoxShadow>[
+          BoxShadow(color: Colors.black26, blurRadius: 2, offset: Offset(0, 1)),
+        ],
       ),
     );
   }

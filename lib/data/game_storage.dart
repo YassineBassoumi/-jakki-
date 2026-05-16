@@ -15,6 +15,7 @@ class GameStorage {
 
   static const String _boxName = 'games';
   static const String _currentKey = 'current';
+  static const String _localeKey = 'locale';
 
   final Box<String> _box;
 
@@ -44,5 +45,13 @@ class GameStorage {
 
   Future<void> clearCurrent() async {
     await _box.delete(_currentKey);
+  }
+
+  /// Returns the persisted UI language code (e.g. `en`, `fr`, `ar`),
+  /// or null if the user has not picked one yet.
+  String? loadLocale() => _box.get(_localeKey);
+
+  Future<void> saveLocale(String code) async {
+    await _box.put(_localeKey, code);
   }
 }

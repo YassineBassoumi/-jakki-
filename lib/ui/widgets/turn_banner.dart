@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../engine/player.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../theme/jakki_theme.dart';
 import 'checker_pill.dart';
 
@@ -22,6 +23,7 @@ class TurnBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextTheme text = Theme.of(context).textTheme;
+    final AppLocalizations l = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -35,7 +37,7 @@ class TurnBanner extends StatelessWidget {
           const Spacer(),
           if (winner != null)
             Text(
-              winner == Player.white ? 'White wins!' : 'Black wins!',
+              winner == Player.white ? l.whiteWins : l.blackWins,
               style: text.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: JakkiTheme.terracotta,
@@ -48,7 +50,7 @@ class TurnBanner extends StatelessWidget {
                 CheckerPill(owner: toMove, diameter: 20),
                 const SizedBox(width: 8),
                 Text(
-                  toMove == Player.white ? "White's turn" : "Black's turn",
+                  toMove == Player.white ? l.whitesTurn : l.blacksTurn,
                   style: text.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
