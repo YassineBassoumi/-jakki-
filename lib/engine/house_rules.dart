@@ -9,6 +9,8 @@ class HouseRules {
     this.enableBackgammonScoring = false,
     this.enableDoublingCube = false,
     this.canBearOffWhilePinning = false,
+    this.oneCheckerPerTurn = true,
+    this.forbidSelfStackingOutsideHome = false,
   });
 
   /// If true, a roll of doubles is played four times (the standard
@@ -37,6 +39,29 @@ class HouseRules {
   /// canonical Mahbousseh rule forbids this; defaults to false.
   final bool canBearOffWhilePinning;
 
+  /// If true (default), the two dice of a turn must move two
+  /// different checkers — i.e. the second sub-move cannot start
+  /// from the destination of the first. For doubles, no sub-move
+  /// may start from a destination of any prior sub-move.
+  ///
+  /// The rule falls back automatically: if no legal play exists
+  /// that respects it, the player may chain sub-moves on the same
+  /// checker. See `docs/RULES.md` §3.
+  final bool oneCheckerPerTurn;
+
+  /// If true, a checker may not land on a point already occupied by
+  /// one or more of the moving player's own checkers when that
+  /// destination is OUTSIDE the player's home board, unless the
+  /// opponent currently has no legal single-die move ("opponent
+  /// locked" exception). Inside the home board, stacking is always
+  /// allowed (the player must collect all 15 checkers into 6 home
+  /// points before bearing off).
+  ///
+  /// Defaults to false: most casual Tunisian Mahbousseh tables
+  /// allow free stacking outside home as long as you do not pin
+  /// your own checker.
+  final bool forbidSelfStackingOutsideHome;
+
   static const HouseRules standard = HouseRules();
 
   HouseRules copyWith({
@@ -46,6 +71,8 @@ class HouseRules {
     bool? enableBackgammonScoring,
     bool? enableDoublingCube,
     bool? canBearOffWhilePinning,
+    bool? oneCheckerPerTurn,
+    bool? forbidSelfStackingOutsideHome,
   }) {
     return HouseRules(
       doublesPlayedFourTimes:
@@ -58,6 +85,9 @@ class HouseRules {
       enableDoublingCube: enableDoublingCube ?? this.enableDoublingCube,
       canBearOffWhilePinning:
           canBearOffWhilePinning ?? this.canBearOffWhilePinning,
+      oneCheckerPerTurn: oneCheckerPerTurn ?? this.oneCheckerPerTurn,
+      forbidSelfStackingOutsideHome:
+          forbidSelfStackingOutsideHome ?? this.forbidSelfStackingOutsideHome,
     );
   }
 
@@ -68,6 +98,8 @@ class HouseRules {
     'enableBackgammonScoring': enableBackgammonScoring,
     'enableDoublingCube': enableDoublingCube,
     'canBearOffWhilePinning': canBearOffWhilePinning,
+    'oneCheckerPerTurn': oneCheckerPerTurn,
+    'forbidSelfStackingOutsideHome': forbidSelfStackingOutsideHome,
   };
 
   factory HouseRules.fromJson(Map<String, Object?> json) {
@@ -86,6 +118,11 @@ class HouseRules {
       enableBackgammonScoring: readBool('enableBackgammonScoring', false),
       enableDoublingCube: readBool('enableDoublingCube', false),
       canBearOffWhilePinning: readBool('canBearOffWhilePinning', false),
+      oneCheckerPerTurn: readBool('oneCheckerPerTurn', true),
+      forbidSelfStackingOutsideHome: readBool(
+        'forbidSelfStackingOutsideHome',
+        false,
+      ),
     );
   }
 }

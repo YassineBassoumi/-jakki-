@@ -98,11 +98,19 @@ class BoardView extends StatelessWidget {
                       padding: const EdgeInsets.all(6),
                       child: Row(
                         children: <Widget>[
+                          // Black bears off into the left tray
+                          // (black's home is points 7..12 on the
+                          // bottom-left).
+                          _bearOffColumn(context, player: Player.black),
+                          const SizedBox(width: 6),
                           Expanded(child: _half(context, isRightHalf: false)),
                           const _MiddleBar(),
                           Expanded(child: _half(context, isRightHalf: true)),
                           const SizedBox(width: 6),
-                          _bearOffColumn(context),
+                          // White bears off into the right tray
+                          // (white's home is points 1..6 on the
+                          // bottom-right).
+                          _bearOffColumn(context, player: Player.white),
                         ],
                       ),
                     ),
@@ -159,27 +167,27 @@ class BoardView extends StatelessWidget {
     );
   }
 
-  Widget _bearOffColumn(BuildContext context) {
+  Widget _bearOffColumn(BuildContext context, {required Player player}) {
+    // The tray on the viewer's bear-off side is interactive when the
+    // viewer can bear off; the opposing tray is purely informational.
+    final bool isMyTray = player == viewer;
+    final bool active = canBearOff && isMyTray;
     return Container(
       width: 48,
       decoration: BoxDecoration(
         color: JakkiTheme.charcoal.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: canBearOff ? JakkiTheme.olive : Colors.transparent,
+          color: active ? JakkiTheme.olive : Colors.transparent,
           width: 2,
         ),
       ),
       child: InkWell(
-        onTap: canBearOff ? onBearOffTapped : null,
+        onTap: active ? onBearOffTapped : null,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            _bearOffSide(
-              player: viewer.opposite,
-              count: board.bornOffFor(viewer.opposite),
-            ),
-            _bearOffSide(player: viewer, count: board.bornOffFor(viewer)),
+            _bearOffSide(player: player, count: board.bornOffFor(player)),
           ],
         ),
       ),

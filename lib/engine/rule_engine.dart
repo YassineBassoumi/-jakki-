@@ -110,7 +110,66 @@ abstract class RuleEngine {
       return false;
     }
 
+    // Mahbousseh no-self-stacking rule (house-rule flag): outside
+    // the player's own home, a checker may not land on a point
+    // already occupied by their own checkers, UNLESS the opponent
+    // has no legal move at all (the "opponent locked" exception).
+    // Inside the player's home, stacking is always allowed because
+    // the player must collect all 15 checkers into 6 home points
+    // before bearing off.
+    if (state.rules.forbidSelfStackingOutsideHome) {
+      final bool wouldStackOnOwn =
+          destPoint.topOwner == player && destPoint.topCount > 0;
+      if (wouldStackOnOwn && !player.isInHome(dest)) {
+        if (_opponentHasAnyLegalMove(state)) {
+          return false;
+        }
+      }
+    }
+
     return true;
+  }
+
+  /// Strict legality probe used by the no-self-stacking exception:
+  /// returns true if the opponent of `state.toMove` has at least one
+  /// legal sub-move with any single die value 1..6 from the current
+  /// board. This intentionally does NOT recurse into the no-stack
+  /// rule (it uses a flat, no-exception form of legality) to avoid
+  /// infinite recursion, and ignores bear-off (a player who can only
+  /// bear off is treated as already "escaped" in spirit — they are
+  /// running out of pieces, not trapped).
+  static bool _opponentHasAnyLegalMove(GameState state) {
+    final Player opp = state.toMove.opposite;
+    for (int from = 1; from <= 24; from++) {
+      final Point p = state.board.pointAt(from);
+      if (p.topOwner != opp || p.topCount == 0) continue;
+      for (int pips = 1; pips <= 6; pips++) {
+        final int dest = destinationFor(opp, from, pips);
+        if (isOffBoardDestination(opp, dest)) continue;
+        if (dest < 1 || dest > 24) continue;
+        final Point destP = state.board.pointAt(dest);
+        if (destP.isBlockedFor(opp)) continue;
+        // Second-half gating (same rule as canApply).
+        if (opp.isInHome(dest) &&
+            !opp.isInHome(from) &&
+            !state.board.canEnterHomeFor(opp)) {
+          continue;
+        }
+        if (state.board.canEnterHomeFor(opp) &&
+            opp.isInHome(from) &&
+            !opp.isInHome(dest)) {
+          continue;
+        }
+        // Strict no-self-stack for the probe (no nested exception).
+        if (destP.topOwner == opp &&
+            destP.topCount > 0 &&
+            !opp.isInHome(dest)) {
+          continue;
+        }
+        return true;
+      }
+    }
+    return false;
   }
 
   static bool _isLegalBearOff(GameState state, Move move) {

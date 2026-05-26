@@ -63,6 +63,21 @@ abstract class MoveGenerator {
         .where((List<Move> s) => s.length == maxLen)
         .toList();
 
+    // Mahbousseh "one checker per turn" rule (house flag, default on):
+    // prefer sequences where no sub-move chains onto the destination
+    // of a prior sub-move (i.e. each sub-move animates a distinct
+    // checker). Falls back to chained sequences when there is no
+    // other legal play.
+    if (state.rules.oneCheckerPerTurn && maxLen >= 2) {
+      final Player player = state.toMove;
+      final List<List<Move>> distinctPieces = filtered
+          .where((List<Move> s) => _movesDistinctCheckers(player, s))
+          .toList();
+      if (distinctPieces.isNotEmpty) {
+        filtered = distinctPieces;
+      }
+    }
+
     // If after that we still have one-move sequences (i.e. the
     // player could only play one die), the rule requires choosing
     // the larger die when both are individually playable.
@@ -82,6 +97,25 @@ abstract class MoveGenerator {
     }
 
     return filtered;
+  }
+
+  /// True if the sub-moves in `seq` animate distinct checkers: each
+  /// move's origin must not equal any previous move's destination
+  /// (which would mean the same checker was lifted, landed, then
+  /// lifted again on a subsequent die).
+  static bool _movesDistinctCheckers(Player player, List<Move> seq) {
+    final List<int> destinations = <int>[];
+    for (final Move m in seq) {
+      if (destinations.contains(m.from)) return false;
+      // Bear-off has no on-board destination, so the moved checker
+      // is gone from the board and can never be chained further.
+      if (m.bearsOff) {
+        destinations.add(-1);
+      } else {
+        destinations.add(RuleEngine.destinationFor(player, m.from, m.pips));
+      }
+    }
+    return true;
   }
 
   /// All single sub-moves currently legal for the player to move

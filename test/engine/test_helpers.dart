@@ -11,6 +11,8 @@ Board boardFrom(
   Map<int, Point> entries, {
   int bornOffWhite = 0,
   int bornOffBlack = 0,
+  bool whiteCanReturnHome = false,
+  bool blackCanReturnHome = false,
 }) {
   final List<Point> points = List<Point>.filled(25, Point.empty);
   entries.forEach((int index, Point point) {
@@ -20,6 +22,8 @@ Board boardFrom(
     points: points,
     bornOffWhite: bornOffWhite,
     bornOffBlack: bornOffBlack,
+    whiteCanReturnHome: whiteCanReturnHome,
+    blackCanReturnHome: blackCanReturnHome,
   );
 }
 

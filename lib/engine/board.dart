@@ -204,6 +204,10 @@ class Board {
   /// to wire the flag through every helper.
   bool canEnterHomeFor(Player player) {
     if (canReturnHomeFor(player)) return true;
+    // The "all 15 in opposite half" condition would have flipped the
+    // latched flag in regular play; recompute it here for test boards
+    // constructed directly.
+    if (computeCanReturnHomeFor(player)) return true;
     if (bornOffFor(player) > 0) return true;
     for (int i = 1; i <= 24; i++) {
       if (!player.isInHome(i)) continue;
