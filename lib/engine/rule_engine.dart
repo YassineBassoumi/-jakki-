@@ -38,10 +38,34 @@ abstract class RuleEngine {
     );
   }
 
-  /// Compute the destination point for `player` moving from `from`
-  /// by `pips`. Returns 0 (white) or 25 (black) for off-the-board.
+  /// Compute the on-board destination point for `player` moving
+  /// from `from` by `pips` along the absolute axis.
+  ///
+  /// White moves with direction -1 (24 → 1). A return value of `0`
+  /// (or negative) means the checker has stepped past point 1 — i.e.
+  /// an off-board move (bear-off if legal, otherwise illegal).
+  ///
+  /// Black moves with direction +1 and **wraps around the 24→1
+  /// corner**: from 22 with 4 pips, the destination is 2. This
+  /// method NEVER returns an off-board sentinel for black; bear-off
+  /// is signalled exclusively via [Move.bearsOff] and validated by
+  /// [_isLegalBearOff] using [Board.distanceToBearOff].
   static int destinationFor(Player player, int from, int pips) {
-    return from + player.direction * pips;
+    if (player == Player.white) {
+      return from - pips;
+    }
+    int dest = from + pips;
+    if (dest > 24) dest -= 24;
+    return dest;
+  }
+
+  /// True iff the destination [dest] returned by [destinationFor]
+  /// represents an off-board (bear-off) position for `player`.
+  ///
+  /// For black this is always false — black bear-off is signalled
+  /// by [Move.bearsOff] and not by an out-of-range destination.
+  static bool isOffBoardDestination(Player player, int dest) {
+    return player == Player.white && dest <= 0;
   }
 
   /// Whether `player` may move a checker from `from` using `pips`,
@@ -54,31 +78,50 @@ abstract class RuleEngine {
     final Point from = state.board.pointAt(move.from);
     if (from.topOwner != player || from.topCount == 0) return false;
 
-    final int dest = destinationFor(player, move.from, move.pips);
-    final bool onBoard = dest >= 1 && dest <= 24;
-
     if (move.bearsOff) {
-      if (onBoard) return false; // bearsOff requires going off-board
       return _isLegalBearOff(state, move);
     }
 
-    if (!onBoard) return false;
+    final int dest = destinationFor(player, move.from, move.pips);
+    if (isOffBoardDestination(player, dest)) return false;
+
     final Point destPoint = state.board.pointAt(dest);
     if (destPoint.isBlockedFor(player)) return false;
 
-    if (!state.rules.canBearOffWhilePinning && from.hasPinned) {
-      // Moving the pinning checker is fine (it frees the opponent),
-      // but bearing it off is not. Regular moves are allowed.
+    // Mahbousseh second-half gating: a checker that is OUTSIDE your
+    // home cannot LAND inside your home until you have completed the
+    // half-lap that brings all 15 of your checkers into the opposite
+    // half of the board. Pieces already in home (e.g. on the starting
+    // stack for black at point 12) are free to LEAVE home to begin
+    // the away journey.
+    if (player.isInHome(dest) &&
+        !player.isInHome(move.from) &&
+        !state.board.canEnterHomeFor(player)) {
+      return false;
     }
+
+    // During the bear-off phase, a checker already in home may not
+    // be played to a non-bear-off destination outside home. (For
+    // black this is the only way the wrap-around could otherwise
+    // produce a nonsense "leaves home, continues the loop" move.)
+    if (state.board.canEnterHomeFor(player) &&
+        player.isInHome(move.from) &&
+        !player.isInHome(dest)) {
+      return false;
+    }
+
     return true;
   }
 
   static bool _isLegalBearOff(GameState state, Move move) {
     final Player player = state.toMove;
+    // Must have completed the half-lap that fills the opposite half.
+    if (!state.board.canEnterHomeFor(player)) return false;
     if (!state.board.allCheckersInHome(player)) return false;
 
     final Point from = state.board.pointAt(move.from);
     if (from.topOwner != player) return false;
+    if (!player.isInHome(move.from)) return false;
 
     if (!state.rules.canBearOffWhilePinning && from.hasPinned) {
       // Cannot bear off a checker that is pinning an opponent.
@@ -127,6 +170,21 @@ abstract class RuleEngine {
         throw StateError('Inconsistent state landing on $dest.');
       }
       board = board.copyWithPoint(dest, destAfter);
+    }
+
+    // Re-evaluate the "can return home" gating flag for the moving
+    // player. The flag latches: once flipped to true it stays true.
+    if (!board.canReturnHomeFor(player)) {
+      if (board.computeCanReturnHomeFor(player)) {
+        board = board.copyWith(
+          whiteCanReturnHome: player == Player.white
+              ? true
+              : board.whiteCanReturnHome,
+          blackCanReturnHome: player == Player.black
+              ? true
+              : board.blackCanReturnHome,
+        );
+      }
     }
 
     // Consume the pip.

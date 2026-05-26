@@ -13,26 +13,29 @@ import 'test_helpers.dart';
 
 void main() {
   group('docs/RULES.md §11 acceptance checklist', () {
-    test('§11.1 Setup places 15 checkers on each player\'s point 24', () {
-      final Board board = Board.startingPosition();
-      expect(board.pointAt(24).topOwner, Player.white);
-      expect(board.pointAt(24).topCount, 15);
-      expect(board.pointAt(24).hasPinned, isFalse);
-      expect(board.pointAt(1).topOwner, Player.black);
-      expect(board.pointAt(1).topCount, 15);
-      expect(board.pointAt(1).hasPinned, isFalse);
+    test(
+      '§11.1 Setup places 15 white on point 24 and 15 black on point 12',
+      () {
+        final Board board = Board.startingPosition();
+        expect(board.pointAt(24).topOwner, Player.white);
+        expect(board.pointAt(24).topCount, 15);
+        expect(board.pointAt(24).hasPinned, isFalse);
+        expect(board.pointAt(12).topOwner, Player.black);
+        expect(board.pointAt(12).topCount, 15);
+        expect(board.pointAt(12).hasPinned, isFalse);
 
-      for (int i = 1; i <= 24; i++) {
-        if (i == 1 || i == 24) continue;
-        expect(
-          board.pointAt(i).isEmpty,
-          isTrue,
-          reason: 'point $i should be empty',
-        );
-      }
-      expect(board.bornOffWhite, 0);
-      expect(board.bornOffBlack, 0);
-    });
+        for (int i = 1; i <= 24; i++) {
+          if (i == 12 || i == 24) continue;
+          expect(
+            board.pointAt(i).isEmpty,
+            isTrue,
+            reason: 'point $i should be empty',
+          );
+        }
+        expect(board.bornOffWhite, 0);
+        expect(board.bornOffBlack, 0);
+      },
+    );
 
     test('§11.2 Opening: state respects the player chosen to move first', () {
       final GameState state = GameState.newGame(firstToMove: Player.black);

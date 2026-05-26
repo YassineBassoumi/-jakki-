@@ -5,6 +5,7 @@ import 'package:jakki/ai/bot.dart';
 import 'package:jakki/ai/evaluator.dart';
 import 'package:jakki/engine/dice.dart';
 import 'package:jakki/engine/game_state.dart';
+import 'package:jakki/engine/house_rules.dart';
 import 'package:jakki/engine/move.dart';
 import 'package:jakki/engine/move_generator.dart';
 import 'package:jakki/engine/player.dart';
@@ -156,13 +157,17 @@ void main() {
     test('plays a full white-vs-bot game without crashing', () {
       // Two bots play each other — the game must terminate (winner
       // set) within a reasonable number of turns and produce a
-      // legal final state.
+      // legal final state. We allow bear-off-while-pinning here so
+      // the game cannot lock up in the rare degenerate case where
+      // one side's only remaining checker is pinning the opponent.
       final OnePlyBot bot = OnePlyBot(rng: Random(123));
       final Random diceRng = Random(456);
 
-      GameState state = GameState.newGame();
+      GameState state = GameState.newGame(
+        rules: const HouseRules(canBearOffWhilePinning: true),
+      );
       int turnsTaken = 0;
-      const int maxTurns = 300; // safety cap
+      const int maxTurns = 600; // safety cap
 
       while (!state.isGameOver && turnsTaken < maxTurns) {
         // Roll dice.

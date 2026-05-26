@@ -91,6 +91,7 @@ abstract class MoveGenerator {
     final Player player = state.toMove;
     final Set<int> uniquePips = state.remainingPips.toSet();
 
+    final bool allInHome = state.board.allCheckersInHome(player);
     for (int from = 1; from <= 24; from++) {
       final Point point = state.board.pointAt(from);
       if (point.topOwner != player || point.topCount == 0) continue;
@@ -99,7 +100,7 @@ abstract class MoveGenerator {
         if (RuleEngine.canApply(state, attempt)) {
           result.add(attempt);
         }
-        if (state.board.allCheckersInHome(player)) {
+        if (allInHome && player.isInHome(from)) {
           final int distance = Board.distanceToBearOff(player, from);
           if (pips >= distance) {
             final Move bearOff = Move(from: from, pips: pips, bearsOff: true);
