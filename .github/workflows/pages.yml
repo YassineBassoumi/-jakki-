@@ -1,0 +1,62 @@
+name: Deploy to GitHub Pages
+
+# Publishes the Flutter web build to GitHub Pages so the game can be
+# played from any browser without installing anything. Updates on every
+# push to the default branch.
+
+on:
+  push:
+    branches:
+      - main
+      - devin/1778886917-bootstrap-plan
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one concurrent deployment; in-flight runs are cancelled when a
+# newer push lands.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # The web bundle is served from a sub-path (`/-jakki-/`) on
+      # GitHub Pages, so we need to tell Flutter to use that as the
+      # base href instead of the default `/`.
+      - name: Build web
+        run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

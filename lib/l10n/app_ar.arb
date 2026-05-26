@@ -1,0 +1,23 @@
+{
+  "@@locale": "ar",
+
+  "appTitle": "جاكي تونسي",
+  "tagline": "محبوسة — شيش-بيش",
+  "playPassAndPlay": "لعب (تبادل الأدوار)",
+  "playVsComputer": "اللعب ضد الكمبيوتر",
+  "continueGame": "متابعة",
+  "rollDice": "ارمِ النرد",
+  "endTurn": "نهاية الدور",
+  "noLegalMoveEndTurn": "لا توجد حركة قانونية — نهاية الدور",
+  "newGame": "لعبة جديدة",
+  "whitesTurn": "دور الأبيض",
+  "blacksTurn": "دور الأسود",
+  "whiteWins": "فاز الأبيض!",
+  "blackWins": "فاز الأسود!",
+  "language": "اللغة",
+  "languageEnglish": "English",
+  "languageFrench": "Français",
+  "languageArabic": "العربية",
+  "computerThinking": "الكمبيوتر يفكر…",
+  "computerNoMove": "الكمبيوتر ليس لديه حركة قانونية"
+}

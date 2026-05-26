@@ -31,24 +31,37 @@ but has different movement and capture rules.
 
 ## 2. Board coordinates used in this document
 
-We number the points 1–24 from each player's own perspective:
+The board has 24 narrow triangles ("points") numbered **1–24 along
+a single absolute axis** (no per-player perspective). Looking at the
+default on-screen layout:
 
-- Each player's **home board** is points 1–6.
-- Each player's **outer board** is points 7–12.
-- The opponent's outer board is points 13–18 from your perspective.
-- The opponent's home board is points 19–24 from your perspective.
-- Point **24** is the starting corner ("tête") — the farthest from
-  your bear-off tray.
-- Players move in **opposite directions**: each player moves their
-  checkers from point 24 down to point 1, then bears them off.
+- Points **1–6** are the bottom-right quadrant (white's home board).
+- Points **7–12** are the bottom-left quadrant (black's home board).
+- Points **13–18** are the top-left quadrant.
+- Points **19–24** are the top-right quadrant.
+- Point **24** sits in the top-right corner; point **1** is the
+  bottom-right corner; the two halves are separated by the central
+  hinge between points 6–7 (bottom) and 18–19 (top).
+
+Movement directions along this axis:
+
+- **White moves counter-clockwise**: `24 → 23 → … → 1 → off`.
+  White's home is **points 1–6**.
+- **Black moves clockwise with wrap**:
+  `12 → 13 → … → 24 → 1 → 2 → … → 11 → 12 → off`.
+  Black's home is **points 7–12** (its starting quadrant).
+
+Both players therefore walk a half-loop of roughly 24 pips before
+bearing off their first checker, even though they share the same
+absolute coordinate axis.
 
 ## 3. Starting position
 
-- Both players place **all 15 checkers on their own point 24**
-  (their starting corner, diagonally opposite to where they will
-  bear off).
-- This is the key difference from Western backgammon, which starts
-  with checkers spread across 24/13/8/6.
+- **15 white checkers on point 24** (top-right corner).
+- **15 black checkers on point 12** (bottom-left corner).
+- This "diagonal" setup is the canonical Tunisian Mahbousseh
+  layout: white sits on its player's right, black on the opponent's
+  left, and each side has a clear half-loop to their bear-off tray.
 - Traditionally, players put only 2 or 3 checkers on the board at
   the very start and hold the rest in their non-rolling hand, adding
   them as the game develops. This is cosmetic and the engine should
@@ -65,11 +78,14 @@ We number the points 1–24 from each player's own perspective:
 
 - A player rolls two dice and moves checkers a number of points
   equal to the value on each die.
-- Each die is a **separate sub-move**. The two sub-moves can be made
-  with the same checker (in two steps) or with two different
-  checkers.
-- **Doubles** are played **four times**, not two: a roll of `(5,5)`
-  produces four sub-moves of 5 pips each.
+- Each die is a **separate sub-move**. By default the two sub-moves
+  must be made with **two different checkers** ("one checker per
+  turn" rule, see §3 of the in-engine `HouseRules` flags). The
+  engine falls back to allowing the same checker to be moved twice
+  only when no legal play exists using two distinct checkers.
+- **Doubles** are played **four times**: a roll of `(5,5)` produces
+  four sub-moves of 5 pips each. The same "distinct checkers" rule
+  applies — by default no checker is moved twice unless forced.
 - When moving a single checker with both dice as one combined hop,
   the **intermediate point** must also be legal to land on.
 - A sub-move is **legal** if the destination point:
@@ -92,6 +108,13 @@ We number the points 1–24 from each player's own perspective:
 - *Khanah*: a local term for using both dice on two different
   checkers that end up stacking together on a previously empty
   point. No special scoring; purely descriptive.
+- **Optional "no self-stacking" rule** (off by default, see
+  `HouseRules.forbidSelfStackingOutsideHome`): outside your own home
+  board, you may not LAND on a point that already holds one of your
+  own checkers, except when the opponent currently has no legal
+  single-die move. Inside the home board, stacking is always allowed
+  because the player must collect all 15 checkers into 6 home points
+  before bearing off.
 
 ## 6. Pinning (the defining rule)
 
@@ -121,9 +144,23 @@ backgammon:
 
 ## 7. Bearing off
 
-- Once **all 15** of your checkers are in your home board (points
-  1–6), you may start bearing them off.
-- A die value `n` bears off a checker from point `n`.
+- **Second-half gating**: a checker that is OUTSIDE your home may
+  not LAND inside your home board until **all 15 of your checkers
+  have simultaneously reached the half of the board opposite to
+  where they started**. Concretely:
+  - White (starts in the right half) cannot land on any point in
+    1–6 until every white checker is in 7–18 (the left half).
+  - Black (starts in the left half, including its home 7–12) cannot
+    re-enter its home board after the wrap until every black checker
+    is in `1–6 ∪ 19–24` (the right half).
+  Once the threshold is reached the gate stays open for the rest of
+  the game; see the latched `whiteCanReturnHome` / `blackCanReturnHome`
+  flags on `Board`.
+- Once the gate has opened **and all 15** of your checkers are in
+  your home board, you may start bearing them off.
+- White's home is points **1–6**; black's home is points **7–12**.
+- A die value `n` bears off the checker that is `n` pips from your
+  bear-off edge.
 - If you roll a value larger than your highest occupied point, you
   bear off from your highest occupied point.
 - You may also use a die to move a checker further within the home

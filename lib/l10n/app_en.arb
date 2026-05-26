@@ -1,0 +1,55 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Jakki Tunisie",
+  "@appTitle": { "description": "Main app title shown on the home screen and app bar." },
+
+  "tagline": "Mahbousseh — chiche-biche",
+  "@tagline": { "description": "Subtitle shown under the title on the home screen." },
+
+  "playPassAndPlay": "Play (pass-and-play)",
+  "@playPassAndPlay": { "description": "Home screen button: start a fresh pass-and-play game." },
+
+  "playVsComputer": "Play vs computer",
+  "@playVsComputer": { "description": "Home screen button: start a single-player game against the AI." },
+
+  "continueGame": "Continue",
+  "@continueGame": { "description": "Home screen button: continue the most recent saved game." },
+
+  "rollDice": "Roll dice",
+  "@rollDice": { "description": "Bottom action button: roll the two dice." },
+
+  "endTurn": "End turn",
+  "@endTurn": { "description": "Bottom action button: pass the turn to the other player." },
+
+  "noLegalMoveEndTurn": "No legal move — end turn",
+  "@noLegalMoveEndTurn": { "description": "Bottom action button when the player is stuck." },
+
+  "newGame": "New game",
+  "@newGame": { "description": "App bar action and game-over button: reset the board." },
+
+  "whitesTurn": "White's turn",
+  "@whitesTurn": { "description": "Turn banner: white player to move." },
+
+  "blacksTurn": "Black's turn",
+  "@blacksTurn": { "description": "Turn banner: black player to move." },
+
+  "whiteWins": "White wins!",
+  "@whiteWins": { "description": "Banner shown when white has finished bearing off." },
+
+  "blackWins": "Black wins!",
+  "@blackWins": { "description": "Banner shown when black has finished bearing off." },
+
+  "language": "Language",
+  "@language": { "description": "Label for the language picker on the home screen." },
+
+  "languageEnglish": "English",
+  "languageFrench": "Français",
+  "languageArabic": "العربية",
+
+  "computerThinking": "Computer is thinking…",
+  "@computerThinking": { "description": "Status text shown on the game screen while the AI computes its move." },
+
+  "computerNoMove": "Computer has no legal move",
+  "@computerNoMove": { "description": "Status text shown when the AI is forced to pass its turn." }
+}

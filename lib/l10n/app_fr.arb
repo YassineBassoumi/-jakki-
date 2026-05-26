@@ -1,0 +1,23 @@
+{
+  "@@locale": "fr",
+
+  "appTitle": "Jakki Tunisie",
+  "tagline": "Mahbousseh — chiche-biche",
+  "playPassAndPlay": "Jouer (à tour de rôle)",
+  "playVsComputer": "Jouer contre l’ordinateur",
+  "continueGame": "Continuer",
+  "rollDice": "Lancer les dés",
+  "endTurn": "Tour suivant",
+  "noLegalMoveEndTurn": "Aucun coup légal — tour suivant",
+  "newGame": "Nouvelle partie",
+  "whitesTurn": "Au tour des blancs",
+  "blacksTurn": "Au tour des noirs",
+  "whiteWins": "Les blancs gagnent !",
+  "blackWins": "Les noirs gagnent !",
+  "language": "Langue",
+  "languageEnglish": "English",
+  "languageFrench": "Français",
+  "languageArabic": "العربية",
+  "computerThinking": "L’ordinateur réfléchit…",
+  "computerNoMove": "L’ordinateur n’a aucun coup légal"
+}
