@@ -46,36 +46,69 @@ class BoardView extends StatelessWidget {
       builder: (BuildContext context, BoxConstraints constraints) {
         return AspectRatio(
           aspectRatio: 16 / 11,
+          // Outer light-wood bezel that frames the felt cloth.
           child: Container(
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: <Color>[
-                  Color(0xFFEFE3C7),
-                  Color(0xFFE8D5A8),
-                  Color(0xFFD9BE85),
+                  JakkiTheme.woodLight,
+                  JakkiTheme.woodMid,
+                  JakkiTheme.woodDark,
                 ],
               ),
-              border: Border.all(color: const Color(0xFF6B4B26), width: 3),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
               boxShadow: const <BoxShadow>[
                 BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
+                  color: Colors.black54,
+                  blurRadius: 14,
+                  offset: Offset(0, 6),
                 ),
               ],
             ),
-            padding: const EdgeInsets.all(8),
-            child: Row(
-              children: <Widget>[
-                Expanded(child: _half(context, isRightHalf: false)),
-                _MiddleBar(),
-                Expanded(child: _half(context, isRightHalf: true)),
-                const SizedBox(width: 8),
-                _bearOffColumn(context),
-              ],
+            child: CustomPaint(
+              painter: const _WoodGrainPainter(),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                // Inner dark-green felt surface.
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const RadialGradient(
+                      center: Alignment.center,
+                      radius: 0.95,
+                      colors: <Color>[
+                        JakkiTheme.feltGreen,
+                        JakkiTheme.feltGreenDeep,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(2),
+                    border: Border.all(color: JakkiTheme.woodGrain, width: 1),
+                    boxShadow: const <BoxShadow>[
+                      BoxShadow(
+                        color: Colors.black54,
+                        blurRadius: 6,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: CustomPaint(
+                    painter: const _FeltTexturePainter(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Row(
+                        children: <Widget>[
+                          Expanded(child: _half(context, isRightHalf: false)),
+                          const _MiddleBar(),
+                          Expanded(child: _half(context, isRightHalf: true)),
+                          const SizedBox(width: 6),
+                          _bearOffColumn(context),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         );
@@ -171,27 +204,125 @@ class BoardView extends StatelessWidget {
   }
 }
 
+/// Wooden centre column that mirrors the hinge of a folded backgammon
+/// box. Two metal plates (top and bottom thirds) suggest the brass
+/// hinges visible on a real Jakki board.
 class _MiddleBar extends StatelessWidget {
+  const _MiddleBar();
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 14,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
+      width: 22,
+      margin: const EdgeInsets.symmetric(horizontal: 6),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
           colors: <Color>[
-            Color(0xFF6B4B26),
-            Color(0xFF8A6B3B),
-            Color(0xFF6B4B26),
+            JakkiTheme.woodDark,
+            JakkiTheme.woodMid,
+            JakkiTheme.woodLight,
+            JakkiTheme.woodMid,
+            JakkiTheme.woodDark,
           ],
         ),
         borderRadius: BorderRadius.circular(3),
         boxShadow: const <BoxShadow>[
-          BoxShadow(color: Colors.black26, blurRadius: 2, offset: Offset(0, 1)),
+          BoxShadow(color: Colors.black54, blurRadius: 4, offset: Offset(0, 2)),
         ],
       ),
+      child: const CustomPaint(painter: _HingePlatesPainter()),
     );
   }
+}
+
+/// Paints subtle wood-grain stripes on the bezel rails.
+class _WoodGrainPainter extends CustomPainter {
+  const _WoodGrainPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint grain = Paint()
+      ..color = JakkiTheme.woodGrain.withValues(alpha: 0.18)
+      ..strokeWidth = 0.6;
+    const int lines = 7;
+    for (int i = 0; i < lines; i++) {
+      final double y = 2 + (i * 1.4);
+      canvas.drawLine(Offset(8, y), Offset(size.width - 8, y), grain);
+      final double yb = size.height - 2 - (i * 1.4);
+      canvas.drawLine(Offset(8, yb), Offset(size.width - 8, yb), grain);
+      final double x = 2 + (i * 1.4);
+      canvas.drawLine(Offset(x, 8), Offset(x, size.height - 8), grain);
+      final double xr = size.width - 2 - (i * 1.4);
+      canvas.drawLine(Offset(xr, 8), Offset(xr, size.height - 8), grain);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _WoodGrainPainter old) => false;
+}
+
+/// Subtle horizontal-thread noise on the felt surface.
+class _FeltTexturePainter extends CustomPainter {
+  const _FeltTexturePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint thread = Paint()
+      ..color = Colors.black.withValues(alpha: 0.08)
+      ..strokeWidth = 0.4;
+    final int rows = (size.height / 3).floor();
+    for (int i = 0; i < rows; i++) {
+      final double y = i * 3.0 + ((i.isEven) ? 0 : 1.2);
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), thread);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _FeltTexturePainter old) => false;
+}
+
+/// Two small brass hinge plates inside the middle bar.
+class _HingePlatesPainter extends CustomPainter {
+  const _HingePlatesPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double w = size.width;
+    final double h = size.height;
+    final double plateW = w * 0.85;
+    final double plateH = (h * 0.07).clamp(8.0, 18.0);
+    final double leftX = (w - plateW) / 2;
+
+    void drawPlate(double topY) {
+      final Rect rect = Rect.fromLTWH(leftX, topY, plateW, plateH);
+      final RRect rr = RRect.fromRectAndRadius(rect, const Radius.circular(2));
+      final Paint fill = Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: <Color>[JakkiTheme.hingeMetalLight, JakkiTheme.hingeMetal],
+        ).createShader(rect);
+      canvas.drawRRect(rr, fill);
+      final Paint screw = Paint()..color = Colors.black.withValues(alpha: 0.55);
+      final double r = (plateH * 0.18).clamp(1.0, 2.5);
+      canvas.drawCircle(
+        Offset(rect.left + plateW * 0.18, rect.center.dy),
+        r,
+        screw,
+      );
+      canvas.drawCircle(
+        Offset(rect.right - plateW * 0.18, rect.center.dy),
+        r,
+        screw,
+      );
+    }
+
+    drawPlate(h * 0.18);
+    drawPlate(h * 0.75 - plateH);
+  }
+
+  @override
+  bool shouldRepaint(covariant _HingePlatesPainter old) => false;
 }
